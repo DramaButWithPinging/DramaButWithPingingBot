@@ -1,0 +1,6 @@
+.ssh*
+.auth
+text/*
+__pycache__/*
+*.pyc
+*test.py
