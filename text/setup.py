@@ -1,11 +1,20 @@
 # File setup.py
 # Description: Generates and saves JSON files to be read later and used to build responses to posts
 
+# Start import setup - think of better way
+import sys
+from pathlib import Path
+sys.path.insert(1, str(Path(sys.path[0]).parent))
+# End import setup
+
+import app.log as log
+
 import json
 
 def save_files(msgs):
+    file_root = sys.path[0] # store files where setup.py is located
     for file, text in msgs.items():
-        with open(f"./{file}.json", "w") as f:
+        with open(f"{file_root}/{file}.json", "w") as f:
             json.dump(text, f)
     
     

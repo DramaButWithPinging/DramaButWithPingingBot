@@ -1,7 +1,14 @@
 # File: backup.py
 # Description: Utility to backup file - for now mainly message_dict.py (all our messages)
 
-import logging
+# Start import setup - think of better way
+import sys
+from pathlib import Path
+sys.path.insert(1, str(Path(sys.path[0]).parent))
+# End import setup
+
+import app.log as log
+
 import os
 import shutil
 import sys
@@ -13,7 +20,7 @@ from pathlib import Path
 
 def backup(file):
     """Backups up libpath.Path file to appropriate filename in local directory ./.backups"""
-    backup_stem_suffix = "-{}.{}.{}" # How our backups will look file.stem+backup_stem_suffix+[(number)].file.suffix.backup
+    backup_stem_suffix = "-{}.{}.{}" # How our backups will look file.stem+backup_stem_suffix+[-number].file.suffix.backup
     backup_dir_name = ".backups" # Name of local backups directory
     backup_path = file.parent / backup_dir_name
     if not backup_path.is_dir(): backup_path.mkdir() # make backup directory if needed

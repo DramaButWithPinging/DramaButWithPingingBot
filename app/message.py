@@ -1,8 +1,9 @@
 # File message.py
 # Description: Message response logic
 
+import log
+
 import json
-import logging
 import os
 import random
 from pathlib import Path

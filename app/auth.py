@@ -1,6 +1,8 @@
 # File: auth.py
 # Description: Handles loading and passing credentials to PRAW from a file
 
+import log
+
 from pathlib import Path
 
 class AuthDict(dict):
