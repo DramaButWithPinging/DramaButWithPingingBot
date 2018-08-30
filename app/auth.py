@@ -1,6 +1,8 @@
 # File: auth.py
 # Description: Handles loading and passing credentials to PRAW from a file
 
+from pathlib import Path
+
 class AuthDict(dict):
     """
     Used to pass Reddit login credentials as keyword arguments to PRAW.
@@ -35,17 +37,21 @@ class AuthFile:
     Newlines seperate items
     """
     
+    count = 5 # Expected number of values to import
+    
     def __init__(self, file):
-        """Read credentials from file passed as string. Store in AuthDict object"""
-        with open(file, "r") as f:
+        """Read credentials from file passed as pathlib.Path object. Store in AuthDict object"""
+        if not file.is_file():
+            # Logging
+            raise FileNotFoundError
+        with file.open("r") as f:
             lines = [] # Store the lines in a list
             for line in f:
                 stripped = line.rstrip() # Strip whitespace
-                # Don't add blank lines
-                if stripped: lines.append(stripped)
-        # Make sure we got the right amount of keys
-        if len(lines) != 5:
-            raise Exception(f"Error: read {len(lines)} lines from input file '{file}'. {self.__class__.__name__} expects 5. Please check '{file}'")
+                if stripped: lines.append(stripped)  # Don't add blank lines
+        # Make sure we got the right amount of values
+        if len(lines) != count:
+            raise Exception(f"Error: read {len(lines)} values from input file '{file}'. {self.__class__.__name__} expects {count}. Please check file.")
         # Pass the lines to AuthDict
         self.keys = AuthDict(*lines)
         return

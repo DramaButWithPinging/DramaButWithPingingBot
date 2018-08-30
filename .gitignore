@@ -1,6 +1,10 @@
 .ssh*
 .auth
-text/*
 __pycache__/*
 *.pyc
 *test.py
+*/.backups/*
+*.backup
+*/message_dict.py
+*.json
+commitmsg

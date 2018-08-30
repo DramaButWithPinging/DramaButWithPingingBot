@@ -2,8 +2,10 @@
 # Description: Message response logic
 
 import json
+import logging
 import os
 import random
+from pathlib import Path
 
 class MessageCenter(dict):
     """
@@ -18,26 +20,29 @@ class MessageCenter(dict):
             cls.instances[cls].dirs = []
         return cls.instances[cls]
     
-    def __init__(self, file_dir=None):
-        """Load files if passed"""
-        random.seed() # Seed the RNG used in self.get_random()
-        if file_dir: self.load(file_dir)
+    def __init__(self, path_dir=None):
+        """Load files from path_dir if passed and seed RNG for self.get_random()"""
+        random.seed()
+        if path_dir: self.load(file_dir)
         return
     
-    def load(self, file_dir):
-        """Load all message JSON files in file_dir and unpack them in self.msg_dict"""
-        if not (file_dir in self.dirs): self.dirs.append(file_dir)
-        for root, dirs, files in os.walk(file_dir):
-            for f in files:
-                if not f.endswith(".json"): continue
-                with open(root + f, "r") as read_file:
-                    self[f[:-5]] = json.load(read_file) # remove ".json" from key value
+    def load(self, path_dir):
+        """Load all message JSON files in file_dir and unpack them into self (dict)"""
+        # Make sure it's a valid directory
+        if not path_dir.is_dir():
+            #Logging code goes here
+            raise ValueError
+        if not (path_dir in self.dirs): self.dirs.append(path_dir)
+        # Iterate recursively through path_dir and return all .json files
+        for file in path_dir.rglob("*.json"):
+            with file.open("r") as f:
+                self[file.stem] = json.load(f)
         return
     
     def reload(self):
-        """Call self.load() on each file_dir in self.dirs"""
-        for file_dir in self.dirs:
-            self.load(file_dir)
+        """Call self.load() on each path_dir in self.dirs"""
+        for path_dir in self.dirs:
+            self.load(path_dir)
         return
     
     def get_random(self, *args):
