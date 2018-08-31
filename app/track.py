@@ -1,7 +1,10 @@
-# File: tracker.py
+# File: track.py
 # Description: Handles any tracking
 
 import logger
+
+# Setup logging
+log = logger.get_logger("Track")
 
 class Tracker:
     """

@@ -12,6 +12,9 @@ import praw
 # Standard Library
 from pathlib import Path
 
+# Setup logging
+log = logger.get_logger("Main")
+
 
 
 

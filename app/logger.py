@@ -14,7 +14,7 @@ debug_mode = False
 log_dir = Path(__file__).parents[1] / "logs"
 if not log_dir.exists(): log_dir.mkdir()
 
-def get_logger(name, handlers=["file","console"]):
+def get_logger(name, handlers=["file","console","combined"]):
     """Build dictionary config and return logger made with name"""
     ### Begin Dictionary Configuration ###
     loggingConfiguration = {
@@ -24,8 +24,8 @@ def get_logger(name, handlers=["file","console"]):
 
     loggingConfiguration['formatters'] = {
         "default": {
-            "format": "{asctime}.{msecs:03.0f}] - {name:^8} - {levelname:^8} - {message}",
-            "datefmt": "(%Y-%m-%d)[%H:%M:%S",
+            "format": "{asctime} [{msecs:03.0f}] - {name:^14} - {levelname:^8} - {message}",
+            "datefmt": "%b %d %H:%M:%S",
             "style": "{" } }
     
     loggingConfiguration['handlers'] = {
@@ -38,7 +38,12 @@ def get_logger(name, handlers=["file","console"]):
             "class": "logging.StreamHandler",
             "level": "WARNING",
             "formatter": "default",
-            "stream": sys.stdout } }
+            "stream": sys.stdout },
+        'combined': {
+            "class": "logging.FileHandler",
+            "level": "INFO",
+            "formatter": "default",
+            "filename": str(log_dir / "bot.log") } }
     
     if debug_mode:
         loggingConfiguration['handlers']['debug'] = {
@@ -46,6 +51,7 @@ def get_logger(name, handlers=["file","console"]):
             "level": "DEBUG",
             "formatter": "default",
             "filename": str(log_dir / f"{name}-debug.log") }
+        loggingConfiguration['handlers']['combined']['level'] = "DEBUG"
         handlers.append("debug")
           
     loggingConfiguration['loggers'] = {
@@ -58,7 +64,6 @@ def get_logger(name, handlers=["file","console"]):
     ### End Dictionary Configuration ###
     logging.config.dictConfig(loggingConfiguration)
     return logging.getLogger(str(name))
-    
                         
        
     

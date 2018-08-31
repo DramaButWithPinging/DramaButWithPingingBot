@@ -5,6 +5,8 @@ import logger
 
 from pathlib import Path
 
+log = logger.get_logger("Auth")
+
 class AuthDict(dict):
     """
     Used to pass Reddit login credentials as keyword arguments to PRAW.
@@ -16,6 +18,7 @@ class AuthDict(dict):
         """Init with the five needed credentials as strings"""
         # First call super() to init dict
         super()
+        log.info(f"Initializing {self.__class__.__name__} for /u/{username}")
         # Now store params as key:value pairs in self (dict)
         self['username'] = username
         self['password'] = password
@@ -44,18 +47,22 @@ class AuthFile:
     def __init__(self, file):
         """Read credentials from file passed as pathlib.Path object. Store in AuthDict object"""
         if not file.is_file():
-            # Logging
+            log.exception(f"Could not load credentials - {file} is not a file")
             raise FileNotFoundError
+        log.info(f"Attempting to read credential file {file}")
         with file.open("r") as f:
+            log.debug(f"Reading lines from file")
             lines = [] # Store the lines in a list
             for line in f:
                 stripped = line.rstrip() # Strip whitespace
                 if stripped: lines.append(stripped)  # Don't add blank lines
         # Make sure we got the right amount of values
         if len(lines) != count:
-            raise Exception(f"Error: read {len(lines)} values from input file '{file}'. {self.__class__.__name__} expects {count}. Please check file.")
+            log.exception(f"Error: read {len(lines)} values from input file '{file}'. {self.__class__.__name__} expects {count}. Please check file.")
+            raise Exception
         # Pass the lines to AuthDict
         self.keys = AuthDict(*lines)
+        log.info("Done loading credentials")
         return
     
     

@@ -3,5 +3,8 @@
 
 import logger
 
+# Setup logging
+log = logger.get_logger("Snapshot")
+
 class Archive:
     pass

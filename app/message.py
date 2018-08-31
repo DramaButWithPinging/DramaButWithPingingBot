@@ -8,6 +8,9 @@ import os
 import random
 from pathlib import Path
 
+# Setup logging
+log = logger.get_logger("MessageCenter")
+
 class MessageCenter(dict):
     """
     Loads and contains the lists of possible message responses for posting
@@ -16,7 +19,9 @@ class MessageCenter(dict):
     instances = {}
     def __new__(cls, *args, **kwargs):
         """Singleton"""
+        log.debug(f"In {cls.__name__}.__new__()")
         if not cls.instances:
+            log.debug(f"First call to singleton {cls.__name__} - creating instance")
             cls.instances[cls] = super().__new__(cls)
             cls.instances[cls].dirs = []
         return cls.instances[cls]
@@ -29,19 +34,25 @@ class MessageCenter(dict):
     
     def load(self, path_dir):
         """Load all message JSON files in file_dir and unpack them into self (dict)"""
+        log.info(f"Attempting to load message files from {path_dir}")
         # Make sure it's a valid directory
         if not path_dir.is_dir():
-            #Logging code goes here
+            log.exception(f"Unable to load message files - {path_dir} is not a directory")
             raise ValueError
-        if not (path_dir in self.dirs): self.dirs.append(path_dir)
+        if not (path_dir in self.dirs):
+            log.debug(f"{path_dir} is new - adding to directory list")
+            self.dirs.append(path_dir)
         # Iterate recursively through path_dir and return all .json files
         for file in path_dir.rglob("*.json"):
+            log.info(f"Found file {file} - attempting to import")
             with file.open("r") as f:
                 self[file.stem] = json.load(f)
+        log.info(f"Finished importing from {path_dir}")
         return
     
     def reload(self):
         """Call self.load() on each path_dir in self.dirs"""
+        log.info(f"Attempting to reload message files from all stored directories")
         for path_dir in self.dirs:
             self.load(path_dir)
         return
@@ -49,6 +60,7 @@ class MessageCenter(dict):
     def get_random(self, *args):
         """Get a random message from dict at args keys. get_random("x", "y") pulls random quote from dict at self['x']['y']"""
         # Go to our initial starting point based on args
+        log.debug(f"Attempting to get a random message - args: {args}")
         loc = self
         for i in args:
             loc = loc[i]
@@ -58,7 +70,8 @@ class MessageCenter(dict):
             try:
                 loc = loc[random.choice(list(loc.keys()))]
             except IndexError:
-                return "Error accessing message - something went wrong"
+                log.exception("Error finding random message - likely an empty dict in message files")
+                return self['main']['wentwrong'] # something went wrong
         return loc
     
     
