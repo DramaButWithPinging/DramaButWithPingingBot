@@ -1,10 +1,17 @@
-.ssh*
-.auth
-__pycache__/*
-*.pyc
-*test.py
-*/.backups/*
-*.backup
-*/message_dict.py
-*.json
+# Files
 commitmsg
+*test.py
+*/message_dict.py
+
+# File types
+.auth
+.ssh*
+*.backup
+*.json
+*.log
+*.pyc
+
+# Directories
+*/__pycache__/*
+*/.backups/*
+*/logs/*

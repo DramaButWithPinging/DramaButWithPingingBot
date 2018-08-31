@@ -4,7 +4,7 @@
 # Start import setup - think of better way
 import sys
 from pathlib import Path
-sys.path.insert(1, str(Path(sys.path[0]).parent))
+sys.path.insert(1, str(Path(__file__).parents[1]))
 # End import setup
 
 import app.log as log
