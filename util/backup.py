@@ -7,7 +7,7 @@ from pathlib import Path
 sys.path.insert(1, str(Path(__file__).parents[1]))
 # End import setup
 
-import app.log as log
+import app.logger as logger
 
 import os
 import shutil

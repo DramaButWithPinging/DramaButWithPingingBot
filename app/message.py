@@ -1,7 +1,7 @@
 # File message.py
 # Description: Message response logic
 
-import log
+import logger
 
 import json
 import os

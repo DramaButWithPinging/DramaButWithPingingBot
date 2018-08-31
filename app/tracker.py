@@ -1,7 +1,7 @@
 # File: tracker.py
 # Description: Handles any tracking
 
-import log
+import logger
 
 class Tracker:
     """

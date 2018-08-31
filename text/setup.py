@@ -7,9 +7,10 @@ from pathlib import Path
 sys.path.insert(1, str(Path(__file__).parents[1]))
 # End import setup
 
-import app.log as log
+import app.logger as logger
 
 import json
+
 
 def save_files(msgs):
     file_root = sys.path[0] # store files where setup.py is located

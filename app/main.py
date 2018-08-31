@@ -3,7 +3,7 @@
 
 # Our Modules
 import auth
-import log
+import logger
 import message
 import snapshot
 import tracker

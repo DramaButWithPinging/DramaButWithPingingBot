@@ -1,4 +1,4 @@
-# File: log.py
+# File: logger.py
 # Description: configures logging system for run time
 
 import logging
