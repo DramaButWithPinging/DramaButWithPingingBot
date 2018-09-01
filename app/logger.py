@@ -52,6 +52,7 @@ def get_logger(name, handlers=["file","console","combined"]):
             "formatter": "default",
             "filename": str(log_dir / f"{name}-debug.log") }
         loggingConfiguration['handlers']['combined']['level'] = "DEBUG"
+        loggingConfiguration['handlers']['console']['level'] = "DEBUG"
         handlers.append("debug")
           
     loggingConfiguration['loggers'] = {

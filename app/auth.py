@@ -45,7 +45,8 @@ class AuthFile:
     count = 5 # Expected number of values to import
     
     def __init__(self, file):
-        """Read credentials from file passed as pathlib.Path object. Store in AuthDict object"""
+        """Read credentials from file. Store in AuthDict object"""
+        file = Path(file) # for case of string
         if not file.is_file():
             log.exception(f"Could not load credentials - {file} is not a file")
             raise FileNotFoundError
@@ -57,8 +58,8 @@ class AuthFile:
                 stripped = line.rstrip() # Strip whitespace
                 if stripped: lines.append(stripped)  # Don't add blank lines
         # Make sure we got the right amount of values
-        if len(lines) != count:
-            log.exception(f"Error: read {len(lines)} values from input file '{file}'. {self.__class__.__name__} expects {count}. Please check file.")
+        if len(lines) != AuthFile.count:
+            log.exception(f"Error: read {len(lines)} values from input file '{file}'. {self.__class__.__name__} expects {AuthFile.count}. Please check file.")
             raise Exception
         # Pass the lines to AuthDict
         self.keys = AuthDict(*lines)

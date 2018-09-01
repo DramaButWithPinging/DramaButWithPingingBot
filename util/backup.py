@@ -22,6 +22,7 @@ log = logger.get_logger("Backup")
 
 def backup(file):
     """Backups up libpath.Path file to appropriate filename in local directory ./.backups"""
+    file = Path(file) # in case of string
     backup_stem_suffix = "-{}.{}.{}" # How our backups will look file.stem+backup_stem_suffix+[-number].file.suffix.backup
     backup_dir_name = ".backups" # Name of local backups directory
     backup_path = file.parent / backup_dir_name
