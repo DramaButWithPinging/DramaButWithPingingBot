@@ -1,9 +1,7 @@
 # Files
-commitmsg
 TODO
+message_dict.py
 *example.txt
-*test.py
-*/message_dict.py
 
 # File types
 .auth
@@ -14,6 +12,7 @@ TODO
 *.pyc
 
 # Directories
-*/__pycache__/*
-*/.backups/*
-*/logs/*
+*__pycache__/*
+*.backups/*
+*logs/*
+*test/*
