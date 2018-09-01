@@ -7,11 +7,14 @@ import logger
 import praw
 
 import datetime
-import operator as op
+import random
 import re
 
 # Setup logging
 log = logger.get_logger("Crosspost")
+
+
+#this file needs better logging
 
 # better way in future
 def not_re_search(*args, **kwargs):
@@ -33,6 +36,8 @@ class CrosspostFilter:
     
     def __init__(self, **kwargs):
         """
+        this needs updating
+        -------
         max_uv = inclusive max upvotes allowed (None as expected)
         min_uv = inclusive min upvotes allowed (None as expected)
         max_age = inclusive max age allowed (None as expected)
@@ -42,26 +47,29 @@ class CrosspostFilter:
         sticky = bool if true must be stickied if false doesn't matter
         no_sticky = bool if true can't be a sticky if false doesn't matter
         """
-        # Possible additions:
-        # author
-        # gilded
-        # over_18
-        # title
-        # archived
-        # comment count
-        #
         # Comparison should be such that cmp(val, post["atr"]) true means filtered
         self.filter_rules = {
-            **FilterRule("max_uv", None, "score", op.lt),
-            **FilterRule("min_uv", None, "score", op.gt),
-            **FilterRule("max_age", None, "created_utc", op.gt),
-            **FilterRule("min_age", None, "created_utc", op.lt),
-            **FilterRule("yes_url", None, "url", not_re_search),
-            **FilterRule("no_url", None, "url", re.search),
-            **FilterRule("yes_domain", None, "domain", not_re_search),
-            **FilterRule("no_domain", None, "domain", re.search),
-            **FilterRule("sticky", False, "stickied", op.ne),
-            **FilterRule("no_sticky", False, "stickied", op.eq) }
+            **FilterRule("max_uv", None, "score", lambda x,y: x < y),
+            **FilterRule("min_uv", None, "score", lambda x,y: x > y),
+            **FilterRule("max_age", None, "created_utc", lambda x,y: x > y),
+            **FilterRule("min_age", None, "created_utc", lambda x,y: x < y),
+            **FilterRule("yes_url", None, "url", lambda x,y: not re.search(x, y)),
+            **FilterRule("not_url", None, "url", lambda x,y: re.search(x, y)),
+            **FilterRule("yes_domain", None, "domain", lambda x,y: not re.search(x, y)),
+            **FilterRule("not_domain", None, "domain", lambda x,y: re.search(x, y)),
+            **FilterRule("sticky", False, "stickied", lambda x,y: x != y),
+            **FilterRule("not_sticky", False, "stickied", lambda x,y: x == y),
+            **FilterRule("max_comment", None, "num_comments", lambda x,y: x < y),
+            **FilterRule("min_comment", None, "num_comments", lambda x,y: x > y),
+            **FilterRule("yes_title", None, "title", lambda x,y: not re.search(x, y)),
+            **FilterRule("not_title", None, "title", lambda x,y: re.search(x, y)),
+            **FilterRule("over_18", False, "over_18", lambda x,y: x == y),
+            **FilterRule("archived", False, "archived", lambda x,y: x == y),
+            **FilterRule("yes_author", None, "author", lambda x,y: not re.search(x, y.name)),
+            **FilterRule("not_author", None, "author", lambda x,y: re.search(x, y.name)),
+            **FilterRule("yes_self", False, "is_self", lambda x,y: x != y),
+            **FilterRule("not_self", False, "is_self", lambda x,y: x == y),
+            **FilterRule("ids", None, "id", lambda x,y: y in x) }
         for key, value in kwargs.items():
             if key not in self.filter_rules.keys():
                 log.exception(f"Unknown {self.__class__.__name__} keyword {key}")
@@ -69,10 +77,13 @@ class CrosspostFilter:
             self.filter_rules[key]['val'] = value     
         return
     
-    def update_rule(self, rule):
+    def update_rules(self, **kwargs):
         """ """
-        # checking?
-        self.filter_rules.update(**rule)
+        for key, value in kwargs.items():
+            if key not in self.filter_rules.keys():
+                log.exception(f"Unknown {self.__class__.__name__} keyword {key}")
+                raise KeyError
+            self.filter_rules[key]['val'] = value
         return
     
     def reject(self, post):
@@ -103,7 +114,7 @@ class Crossposter:
         self.src = from_sub
         self.dest = to_sub
         self.filters = []
-        self.filters.extend(fltr_list)
+        self.filters.extend(list(fltr_list))
         self.retrieved_posts = [] # posts retrieved pre-filtering
         self.filter_reasons = {} # form -  post: [ (filter1, [reason1, reason2]) , (filter2, [reason1, reason2, reason3, ...]), ... ]
         self.posts = []
@@ -112,6 +123,12 @@ class Crossposter:
     def get_posts(self, count=100, sort_style="new"):
         """ """
         # get count # of posts from self.src and put in self.retrieved_posts'
+        
+        #fresh copy for now
+        self.retrieved_posts = []
+        self.filter_reasons = {}
+        self.posts = []
+        
         self.retrieved_posts = list(getattr(self.src, sort_style)(limit=count))
         for post in self.retrieved_posts:
             self.filter_reasons[post] = []
@@ -127,14 +144,43 @@ class Crossposter:
     
     def add_filters(self, fltr_list):
         """ """
-        self.filters.extend(fltr_list)
+        self.filters.extend(list(fltr_list))
+        return
+    
+    # remove filters?
+    
+    def sort_posts(self, attr="score", rvrs=True):
+        """ """
+        self.posts.sort(key=lambda x: x.__getattribute__(attr), reverse=rvrs)
+        return
+    
+    def random_sort(self):
+        random.seed()
+        random.shuffle(self.posts)
         return
     
     def post(self):
-        # name manipulation?
-        # pick from self.posts and post it
         # check if already exists
-        pass
+        the_post = None
+        for p in self.posts:
+            dups = list(p.duplicates())
+            if self.dest.display_name not in [dups[x].subreddit.display_name for x in range(len(dups))]:
+                the_post = p
+                break # We're good
+            log.debug(f"Post: {p.title} already posted in r/{self.dest}\n")
+        if not the_post:
+            log.exception("Couldn't find a valid crosspost")
+            raise "Something went wrong"
+        new_title = f'(x-post r/{self.src}) "{the_post.title}"'
+        if len(new_title) > 300:
+            new_title = f'{new_title[:295]}..."'
+        log.info(f"Crossposting from r/{self.src} -> r/{self.dest}:\nTitle: {new_title}\n")
+        #new_post = self.dest.submit(new_title, url=the_post.url, resubmit=False, send_replies=False)
+        new_post = the_post.crosspost(self.dest, new_title, send_replies=False)
+        return (the_post, new_post)
+    
+
+    
     
     
         

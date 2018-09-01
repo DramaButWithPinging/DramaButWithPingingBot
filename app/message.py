@@ -29,11 +29,12 @@ class MessageCenter(dict):
     def __init__(self, path_dir=None):
         """Load files from path_dir if passed and seed RNG for self.get_random()"""
         random.seed()
-        if path_dir: self.load(file_dir)
+        if path_dir: self.load(path_dir)
         return
     
     def load(self, path_dir):
-        """Load all message JSON files in file_dir and unpack them into self (dict)"""
+        """Load all message JSON files in path_dir and unpack them into self (dict)"""
+        path_dir = Path(path_dir)
         log.info(f"Attempting to load message files from {path_dir}")
         # Make sure it's a valid directory
         if not path_dir.is_dir():
