@@ -16,3 +16,4 @@ message_dict.py
 *.backups/*
 *logs/*
 *test/*
+*venv/

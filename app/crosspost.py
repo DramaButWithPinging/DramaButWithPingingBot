@@ -135,7 +135,7 @@ class Crossposter:
             for filter in self.filters:
                 filter_reasons = filter.reject(post)
                 if filter_reasons:
-                    log.debug(f"Filtering post titled {post.name} because of {filter_reasons}")
+                    log.debug(f"Filtering post titled {post.title} because of {filter_reasons}\n")
                     self.filter_reasons[post].append((filter, filter_reasons))
             if not self.filter_reasons[post]:
                 # Not filtered pass it on
@@ -162,11 +162,13 @@ class Crossposter:
     def post(self):
         # check if already exists
         the_post = None
+        dup_ids = []
         for p in self.posts:
             dups = list(p.duplicates())
             if self.dest.display_name not in [dups[x].subreddit.display_name for x in range(len(dups))]:
                 the_post = p
                 break # We're good
+            dup_ids.append(p.id)
             log.debug(f"Post: {p.title} already posted in r/{self.dest}\n")
         if not the_post:
             log.exception("Couldn't find a valid crosspost")
@@ -177,7 +179,7 @@ class Crossposter:
         log.info(f"Crossposting from r/{self.src} -> r/{self.dest}:\nTitle: {new_title}\n")
         #new_post = self.dest.submit(new_title, url=the_post.url, resubmit=False, send_replies=False)
         new_post = the_post.crosspost(self.dest, new_title, send_replies=False)
-        return (the_post, new_post)
+        return (the_post, new_post, dup_ids)
     
 
     

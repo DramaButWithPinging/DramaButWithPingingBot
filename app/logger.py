@@ -1,5 +1,5 @@
 # File: logger.py
-# Description: configures logging system for run time
+# Description: Configures logging system for all modules
 
 import logging
 import logging.config
@@ -11,11 +11,12 @@ from pathlib import Path
 debug_mode = False
 
 # Setup logging directory
-log_dir = Path(__file__).parents[1] / "logs"
+log_dir = Path(__file__).parents[1] / "log"
 if not log_dir.exists(): log_dir.mkdir()
 
 def get_logger(name, handlers=["file","console","combined"]):
     """Build dictionary config and return logger made with name"""
+    local_handlers = handlers.copy() # make local copy
     ### Begin Dictionary Configuration ###
     loggingConfiguration = {
         "version": 1,
@@ -51,20 +52,25 @@ def get_logger(name, handlers=["file","console","combined"]):
             "level": "DEBUG",
             "formatter": "default",
             "filename": str(log_dir / f"{name}-debug.log") }
-        loggingConfiguration['handlers']['combined']['level'] = "DEBUG"
+        loggingConfiguration['handlers']['combined-debug'] = {
+            "class": "logging.FileHandler",
+            "level": "DEBUG",
+            "formatter": "default",
+            "filename": str(log_dir / "bot-debug.log") }
         loggingConfiguration['handlers']['console']['level'] = "DEBUG"
-        handlers.append("debug")
+        local_handlers.append("debug")
+        local_handlers.append("combined-debug")
           
     loggingConfiguration['loggers'] = {
-        str(name): {
+        name: {
             "level": "DEBUG",
             "propogate": False,
-            "handlers" : handlers } }
+            "handlers" : local_handlers } }
     
     loggingConfiguration['root'] = { "level": "CRITICAL" }
     ### End Dictionary Configuration ###
     logging.config.dictConfig(loggingConfiguration)
-    return logging.getLogger(str(name))
+    return logging.getLogger(name)
                         
        
     

@@ -1,4 +1,4 @@
-# File setup.py
+# File build_text.py
 # Description: Generates and saves JSON files to be read later and used to build responses to posts
 
 # Start import setup - think of better way
@@ -16,7 +16,7 @@ log = logger.get_logger("MessageSetup")
 
 
 def save_files(msgs):
-    file_root = sys.path[0] # store files where setup.py is located
+    file_root = "../log" # need to update this
     log.info(f"Attempting to build and save message files in directory {file_root}")
     for file, text in msgs.items():
         log.info(f"Attempting to write to {file_root}/{file}.json")
@@ -28,7 +28,7 @@ def save_files(msgs):
     return
 
 ##### MESSAGES #####
-import message_dict
+import text.message_dict
 
 # message_dict.py kept seperate and added to .gitignore to remove customization
 # message_dict.py has structure:
