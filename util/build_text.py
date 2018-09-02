@@ -16,11 +16,11 @@ log = logger.get_logger("MessageSetup")
 
 
 def save_files(msgs):
-    file_root = "../log" # need to update this
+    file_root = Path(sys.path[1]) / "text" # need to update this
     log.info(f"Attempting to build and save message files in directory {file_root}")
     for file, text in msgs.items():
         log.info(f"Attempting to write to {file_root}/{file}.json")
-        with open(f"{file_root}/{file}.json", "w") as f:
+        with Path(file_root / f"{file}.json").open("w") as f:
             log.info(f"File open - attempting to dump JSON")
             json.dump(text, f)
     
@@ -46,5 +46,5 @@ import text.message_dict
 
 
 if __name__ == '__main__':
-    log.info(f"setup.py running as __main__")
-    save_files(message_dict.messages)
+    log.info(f"build_text.py running as __main__")
+    save_files(text.message_dict.messages)
