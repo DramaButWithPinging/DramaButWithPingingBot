@@ -24,7 +24,7 @@ class FilterRule(dict):
     """ """
     def __init__(self, key, val, atr, cmp):
         """ """
-        super()
+        super().__init__()
         self[key] = {
             "val": val,
             "atr": atr,
@@ -48,7 +48,8 @@ class CrosspostFilter:
         no_sticky = bool if true can't be a sticky if false doesn't matter
         """
         # Comparison should be such that cmp(val, post["atr"]) true means filtered
-        self.filter_rules = {
+        self.filter_rules = {}
+        self.default_filter_rules = {
             **FilterRule("max_uv", None, "score", lambda x,y: x < y),
             **FilterRule("min_uv", None, "score", lambda x,y: x > y),
             **FilterRule("max_age", None, "created_utc", lambda x,y: x > y),
@@ -71,32 +72,37 @@ class CrosspostFilter:
             **FilterRule("not_self", False, "is_self", lambda x,y: x == y),
             **FilterRule("ids", None, "id", lambda x,y: y in x) }
         for key, value in kwargs.items():
-            if key not in self.filter_rules.keys():
+            if key not in self.default_filter_rules.keys():
                 log.exception(f"Unknown {self.__class__.__name__} keyword {key}")
                 raise KeyError
-            self.filter_rules[key]['val'] = value     
+            self.filter_rules[key] = self.default_filter_rules[key]
+            self.filter_rules[key]['val'] = value
         return
+    
+    def __str__(self):
+        return str(self.filter_rules)
     
     def update_rules(self, **kwargs):
         """ """
         for key, value in kwargs.items():
-            if key not in self.filter_rules.keys():
+            if key not in self.default_filter_rules.keys():
                 log.exception(f"Unknown {self.__class__.__name__} keyword {key}")
                 raise KeyError
+            self.filter_rules[key] = self.default_filter_rules[key]
             self.filter_rules[key]['val'] = value
         return
     
     def reject(self, post):
         """ """
         reject = []
-        for key, value in self.filter_rules.items():
-            current = self.filter_rules[key]
-            if not current['val']:
+        for key, rule in self.filter_rules.items():
+            #current = self.filter_rules[key]
+            if not rule['val']:
                 continue # None or False means no filter test
-            comp = current['cmp']
-            post_atr = post.__getattribute__(current['atr'])
-            if comp(current['val'], post_atr):
-                log.debug(f"Filtering {post} because {key}: {comp}({current['val']}, {post_atr})")
+            comp = rule['cmp']
+            post_atr = post.__getattribute__(rule['atr'])
+            if comp(rule['val'], post_atr):
+                log.debug(f"Filtering {post} because {key}: {comp}({rule['val']}, post.{atr})")
                 reject.append(key)
         return reject
             
@@ -131,14 +137,17 @@ class Crossposter:
         
         self.retrieved_posts = list(getattr(self.src, sort_style)(limit=count))
         for post in self.retrieved_posts:
+            log.debug(f'Looking at post "{post.title}...')
             self.filter_reasons[post] = []
             for filter in self.filters:
+                log.debug(f'Applying filter {filter}')
                 filter_reasons = filter.reject(post)
                 if filter_reasons:
                     log.debug(f"Filtering post titled {post.title} because of {filter_reasons}\n")
                     self.filter_reasons[post].append((filter, filter_reasons))
             if not self.filter_reasons[post]:
                 # Not filtered pass it on
+                log.debug(f'Post: "{post.title}" passed through filters')
                 self.posts.append(post)
         return
     
@@ -169,14 +178,14 @@ class Crossposter:
                 the_post = p
                 break # We're good
             dup_ids.append(p.id)
-            log.debug(f"Post: {p.title} already posted in r/{self.dest}\n")
+            log.debug(f"Post: {p.title} already posted in r/{self.dest}")
         if not the_post:
             log.exception("Couldn't find a valid crosspost")
             raise "Something went wrong"
         new_title = f'(x-post r/{self.src}) "{the_post.title}"'
         if len(new_title) > 300:
             new_title = f'{new_title[:295]}..."'
-        log.info(f"Crossposting from r/{self.src} -> r/{self.dest}:\nTitle: {new_title}\n")
+        log.info(f"Crossposting from r/{self.src} -> r/{self.dest}:\nTitle: {new_title}")
         #new_post = self.dest.submit(new_title, url=the_post.url, resubmit=False, send_replies=False)
         new_post = the_post.crosspost(self.dest, new_title, send_replies=False)
         return (the_post, new_post, dup_ids)
