@@ -102,7 +102,7 @@ class CrosspostFilter:
             comp = rule['cmp']
             post_atr = post.__getattribute__(rule['atr'])
             if comp(rule['val'], post_atr):
-                log.debug(f"Filtering {post} because {key}: {comp}({rule['val']}, post.{atr})")
+                log.debug(f"Filtering {post} because {key}: {comp}({rule['val']}, post.{rule['atr']})")
                 reject.append(key)
         return reject
             
